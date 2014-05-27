@@ -2,13 +2,14 @@
 function init() {
 	var zoom = 0.2;
 
+	var body = document.getElementById('body');
 	var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
 	var angleZ = 0;
 	var angleX = 0;
 
-	canvas.width  = document.getElementById('body').offsetWidth;
-	canvas.height = document.getElementById('body').offsetHeight;
+	canvas.width  = body.offsetWidth;
+	canvas.height = body.offsetHeight;
 
 	var pressed = false;
 	var changed = true;
