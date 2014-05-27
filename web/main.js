@@ -14,16 +14,24 @@ function init() {
 	var pressed = false;
 	var changed = true;
 	var lastX, lastY;
-	canvas.addEventListener('mousedown', function (event) {
+	canvas.addEventListener('mousedown', function (e) { pd(e); mouseDown(e.screenX, e.screenY) });
+	canvas.addEventListener('mousemove', function (e) { pd(e); mouseMove(e.screenX, e.screenY) });
+	canvas.addEventListener('mouseup',   function (e) { pd(e); mouseUp() });
+	body.addEventListener('touchstart',  function (e) { pd(e); mouseDown(e.pageX, e.pageY); });
+	body.addEventListener('touchmove',   function (e) { pd(e); mouseMove(e.pageX, e.pageY); })
+	body.addEventListener('touchend',    function (e) { pd(e); mouseUp() })
+
+
+	function pd(event) {
+		event.preventDefault();
+	}
+	function mouseDown(x,y) {
 		pressed = true;
-		lastX = event.screenX;
-		lastY = event.screenY;
-	});
-	canvas.addEventListener('mouseup',   function (event) { pressed = false; });
-	canvas.addEventListener('mousemove', function (event) {
+		lastX = x;
+		lastY = y;
+	}
+	function mouseMove(x,y) {
 		if (pressed) {
-			var x = event.screenX;
-			var y = event.screenY;
 			angleZ += (lastX - x)*0.03*zoom;
 			angleX += (lastY - y)*0.03*zoom;
 
@@ -35,7 +43,10 @@ function init() {
 			lastX = x;
 			lastY = y;
 		}
-	});
+	}
+	function mouseUp() {
+		pressed = false;
+	}
 
 	setInterval(frame, 40);
 
