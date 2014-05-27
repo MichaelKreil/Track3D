@@ -98,7 +98,7 @@ function init() {
 
 		data.grid.forEach(function (point) {
 			var v = [point.x, point.y, point.z];
-			var color = (point.z <= 0) ? '0,0,255' : Math.round(point.z*3)+',255,0';
+			var color = (point.z <= 0) ? '0,0,255' : /*Math.round(point.z*3)+*/'0,255,0';
 
 			vec.scaleZ(v, 2);
 			vec.rotateZ(v, angleZ);
