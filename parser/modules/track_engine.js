@@ -75,29 +75,48 @@ exports.track = function () {
 		
 		var area = sqr(latMax-latMin) + sqr((lonMax-lonMin)*f);
 		var r = 0.05*Math.sqrt(area);
+		
 		latMin -= r;
 		latMax += r;
 		lonMin -= r/f;
 		lonMax += r/f;
+		
 		var latValues = [], lonValues = [];
-		var stepY = Math.sqrt(area)/100, stepX = stepY/f;
-		var xc = Math.floor((lonMax-lonMin)/(2*stepX));
-		var yc = Math.floor((latMax-latMin)/(2*stepY));
-		for (var x = -xc; x <= xc; x++) lonValues.push(x*stepX + lonC);
-		for (var y = -yc; y <= yc; y++) latValues.push(y*stepY + latC);
+
+		var stepLat = Math.sqrt(area)/100;
+		var stepLon = stepLat/f;
+		
+		var lonCount = Math.floor((lonMax-lonMin)/(2*stepLon));
+		var latCount = Math.floor((latMax-latMin)/(2*stepLat));
+		
+		for (var i = -lonCount; i <= lonCount; i++) lonValues.push(i*stepLon + lonC);
+		for (var i = -latCount; i <= latCount; i++) latValues.push(i*stepLat + latC);
+		
 		var grid = [];
 		var elevation = new Elevation();
+
+		var dLon = stepLon/2;
+		var dLat = stepLat/2;
+		console.log(dLon, dLat);
+
 		lonValues.forEach(function (lon) {
 			latValues.forEach(function (lat) {
-				grid.push({lon:lon, lat:lat, ele:elevation(lon, lat)});
+				grid.push({
+					lon:lon,
+					lat:lat,
+					ele:elevation(lon, lat),
+					lonD:(elevation(lon + dLon, lat) - elevation(lon - dLon, lat))/(2*dLon),
+					latD:(elevation(lon, lat + dLat) - elevation(lon, lat - dLat))/(2*dLat)
+				});
 			})
 		})
 
+		var scale = 40074000/360;
 		var data = {
 			points: points.map(function (point) {
 				return {
-					y:-round((point.lat - latC)*40074000/360),
-					x: round((point.lon - lonC)*40074000/360*f),
+					y:-round((point.lat - latC)*scale),
+					x: round((point.lon - lonC)*scale*f),
 					z: point.ele,
 					t: point.time - timeMin,
 					h: point.hacc,
@@ -107,9 +126,11 @@ exports.track = function () {
 			}),
 			grid: grid.map(function (point) {
 				return {
-					y:-round((point.lat - latC)*40074000/360),
-					x: round((point.lon - lonC)*40074000/360*f),
-					z: point.ele
+					y:-round((point.lat - latC)*scale),
+					x: round((point.lon - lonC)*scale*f),
+					z: point.ele,
+					dx: point.latD/(scale),
+					dy: point.lonD/(scale*f)
 				}
 			})
 		}
