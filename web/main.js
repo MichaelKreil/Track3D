@@ -5,8 +5,8 @@ function init() {
 	var body = document.getElementById('body');
 	var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
-	var angleZ = 0;
-	var angleX = 0;
+	var angleZ = -1;
+	var angleX = -0.5;
 
 	canvas.width  = body.offsetWidth;
 	canvas.height = body.offsetHeight;
@@ -35,8 +35,8 @@ function init() {
 			angleZ += (lastX - x)*0.03*zoom;
 			angleX += (lastY - y)*0.03*zoom;
 
+			if (angleX >  0.0) angleX =  0.0;
 			if (angleX < -1.2) angleX = -1.2;
-			if (angleX >  1.2) angleX =  1.2;
 
 			changed = true;
 
