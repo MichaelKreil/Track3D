@@ -54,8 +54,13 @@ function init() {
 		if (!changed) return;
 		changed = false;
 
-		var w  = canvas.offsetWidth;
-		var h  = canvas.offsetHeight;
+		var w  = body.offsetWidth;
+		var h  = body.offsetHeight;
+		canvas.width  = w;
+		canvas.height = h;
+
+		zoom = Math.sqrt(w*w + h*h)/6000;
+
 		var xc = w / 2;
 		var yc = h / 2;
 		
@@ -112,8 +117,10 @@ function init() {
 		objects.forEach(function (obj) {
 			var rad = Math.abs(obj[0])*0.03;
 			
-			var alpha = 2/Math.pow(rad+1,2);
+			var alpha = 2/Math.pow(rad+1,1.8);
 			if (alpha > 1) alpha = 1;
+
+			rad *= zoom*3;
 
 			switch (obj.length) {
 				case 6:
