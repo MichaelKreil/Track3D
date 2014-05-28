@@ -2,39 +2,51 @@
 function init() {
 	var zoom = 0.2;
 
+	var body = document.getElementById('body');
 	var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
-	var angleZ = 0;
-	var angleX = 0;
+	var angleZ = -1;
+	var angleX = -0.5;
 
-	canvas.width  = document.getElementById('body').offsetWidth;
-	canvas.height = document.getElementById('body').offsetHeight;
+	canvas.width  = body.offsetWidth;
+	canvas.height = body.offsetHeight;
 
 	var pressed = false;
 	var changed = true;
 	var lastX, lastY;
-	canvas.addEventListener('mousedown', function (event) {
+	canvas.addEventListener('mousedown', function (e) { pd(e); mouseDown(e.screenX, e.screenY) });
+	canvas.addEventListener('mousemove', function (e) { pd(e); mouseMove(e.screenX, e.screenY) });
+	canvas.addEventListener('mouseup',   function (e) { pd(e); mouseUp() });
+	body.addEventListener('touchstart',  function (e) { pd(e); mouseDown(e.pageX, e.pageY); });
+	body.addEventListener('touchmove',   function (e) { pd(e); mouseMove(e.pageX, e.pageY); })
+	body.addEventListener('touchend',    function (e) { pd(e); mouseUp() })
+
+
+	function pd(event) {
+		event.preventDefault();
+	}
+	function mouseDown(x,y) {
 		pressed = true;
-		lastX = event.screenX;
-		lastY = event.screenY;
-	});
-	canvas.addEventListener('mouseup',   function (event) { pressed = false; });
-	canvas.addEventListener('mousemove', function (event) {
+		lastX = x;
+		lastY = y;
+	}
+	function mouseMove(x,y) {
 		if (pressed) {
-			var x = event.screenX;
-			var y = event.screenY;
 			angleZ += (lastX - x)*0.03*zoom;
 			angleX += (lastY - y)*0.03*zoom;
 
+			if (angleX >  0.0) angleX =  0.0;
 			if (angleX < -1.2) angleX = -1.2;
-			if (angleX >  1.2) angleX =  1.2;
 
 			changed = true;
 
 			lastX = x;
 			lastY = y;
 		}
-	});
+	}
+	function mouseUp() {
+		pressed = false;
+	}
 
 	setInterval(frame, 40);
 
@@ -42,8 +54,13 @@ function init() {
 		if (!changed) return;
 		changed = false;
 
-		var w  = canvas.offsetWidth;
-		var h  = canvas.offsetHeight;
+		var w  = body.offsetWidth;
+		var h  = body.offsetHeight;
+		canvas.width  = w;
+		canvas.height = h;
+
+		zoom = Math.sqrt(w*w + h*h)/6000;
+
 		var xc = w / 2;
 		var yc = h / 2;
 		
@@ -81,7 +98,7 @@ function init() {
 
 		data.grid.forEach(function (point) {
 			var v = [point.x, point.y, point.z];
-			var color = (point.z <= 0) ? '0,0,255' : Math.round(point.z*3)+',255,0';
+			var color = (point.z <= 0) ? '0,0,255' : /*Math.round(point.z*3)+*/'0,255,0';
 
 			vec.scaleZ(v, 2);
 			vec.rotateZ(v, angleZ);
@@ -100,8 +117,10 @@ function init() {
 		objects.forEach(function (obj) {
 			var rad = Math.abs(obj[0])*0.03;
 			
-			var alpha = 2/Math.pow(rad+1,2);
+			var alpha = 2/Math.pow(rad+1,1.8);
 			if (alpha > 1) alpha = 1;
+
+			rad *= zoom*3;
 
 			switch (obj.length) {
 				case 6:
