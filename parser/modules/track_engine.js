@@ -83,7 +83,7 @@ exports.track = function () {
 		
 		var latValues = [], lonValues = [];
 
-		var stepLat = Math.sqrt(area)/100;
+		var stepLat = Math.sqrt(area)/80;
 		var stepLon = stepLat/f;
 		
 		var lonCount = Math.floor((lonMax-lonMin)/(2*stepLon));
@@ -97,7 +97,6 @@ exports.track = function () {
 
 		var dLon = stepLon/2;
 		var dLat = stepLat/2;
-		console.log(dLon, dLat);
 
 		lonValues.forEach(function (lon) {
 			latValues.forEach(function (lat) {
