@@ -14,6 +14,8 @@ function init() {
 	var pressed = false;
 	var changed = true;
 	var drawList = false;
+	var activePoint = {};
+	var time = 0;
 	var lastX, lastY;
 	canvas.addEventListener('mousedown', function (e) { pd(e); mouseDown(e.screenX, e.screenY) });
 	canvas.addEventListener('mousemove', function (e) { pd(e); mouseMove(e.screenX, e.screenY) });
@@ -52,8 +54,9 @@ function init() {
 	setInterval(frame, 40);
 
 	function frame() {
+		time += 1;
 		if (!changed) return;
-		changed = false;
+		//changed = false;
 
 		var w  = body.offsetWidth;
 		var h  = body.offsetHeight;
@@ -89,7 +92,7 @@ function init() {
 				drawList.push({
 					type:'grid',
 					z:0,
-					r:1,
+					r:2,
 					alpha:1,
 					point:point,
 					color: (point.z <= 0) ? '0,0,255' : '0,255,0'
@@ -110,6 +113,9 @@ function init() {
 		data.points.forEach(function (point) { point.vector = project([point.x, point.y, point.z]) });
 		data.grid.forEach(  function (point) { point.vector = project([point.x, point.y, point.z]) });
 
+		var activeV1 = [data.points[time].x, data.points[time].y, data.points[time].z];
+		var activeV = activeV1;
+		activePoint.vector = project(activeV, 0);
 
 		drawList.forEach(function (obj) {
 			if (obj.point) {
@@ -126,12 +132,12 @@ function init() {
 		ctx.lineCap = 'round';
 
 		drawList.forEach(function (obj) {
-			var blur = Math.abs(obj.z)*0.03;
+			var blur = Math.abs(obj.z - activePoint.vector[2])*0.03;
 			
-			var alpha = obj.alpha*2/Math.pow(blur+1,1.8);
+			var alpha = obj.alpha*2/Math.pow(blur+1,1.5);
 			if (alpha > 1) alpha = 1;
 
-			rad *= zoom*3;
+			blur *= zoom*3;
 
 			switch (obj.type) {
 				case 'grid':
@@ -151,6 +157,10 @@ function init() {
 			}
 		})
 
+		ctx.beginPath();
+		ctx.fillStyle = 'rgb(255,255,255)';
+		ctx.arc(activePoint.vector[0], activePoint.vector[1], 10, 0, Math.PI*2, false);
+		ctx.fill();
 
 		return;
 	}
