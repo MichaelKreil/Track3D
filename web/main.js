@@ -151,31 +151,8 @@ function init() {
 			}
 		})
 
+
 		return;
-
-
-		for (var i = 0; i < points.length-1; i++) {
-				//Math.abs(v[2])*0.02+1,
-			var rad = (points[i][2] + points[i+1][2])/2;
-			
-			var alpha = 2/Math.pow(rad,1.6);
-			if (alpha > 1) alpha = 1;
-
-			var v = (points[i][3] + points[i+1][3])/2;
-			v *= 0.8;
-			var r = Math.round(255/(Math.exp(0.1/v)-1));
-			var g = Math.round(255/(Math.exp(1/v)-1));
-			var b = Math.round(255/(Math.exp(2/v)-1));
-
-			ctx.strokeStyle = 'rgba('+r+','+g+','+b+','+alpha+')';
-			//ctx.arc(x,y,rad,0,Math.PI*2,false);
-			ctx.moveTo(points[i  ][0], points[i  ][1]);
-			ctx.lineTo(points[i+1][0], points[i+1][1]);
-			ctx.lineWidth = rad;
-			ctx.stroke();
-		}
-
-		changed = false;
 	}
 }
 
