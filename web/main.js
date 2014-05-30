@@ -113,8 +113,17 @@ function init() {
 		data.points.forEach(function (point) { point.vector = project([point.x, point.y, point.z]) });
 		data.grid.forEach(  function (point) { point.vector = project([point.x, point.y, point.z]) });
 
-		var activeV1 = [data.points[time].x, data.points[time].y, data.points[time].z];
-		var activeV = activeV1;
+		var activeV1 = data.points[0];
+		var activeV2 = data.points[data.points.length-1];
+		data.points.forEach(function (point) {
+			if ((activeV1.t < point.t) && (point.t <= time)) activeV1 = point;
+			if ((activeV2.t > point.t) && (point.t >  time)) activeV2 = point;
+		})
+		var activeV = vec.blend(
+			[activeV1.x, activeV1.y, activeV1.z],
+			[activeV2.x, activeV2.y, activeV2.z],
+			(time - activeV1.t)/(activeV2.t - activeV1.t)
+		);
 		activePoint.vector = project(activeV, 0);
 
 		drawList.forEach(function (obj) {
@@ -202,6 +211,13 @@ var vec = {
 	translate2D: function (v, x, y) {
 		v[0] += x;
 		v[1] = y - v[1];
+	},
+	blend: function (v0, v1, a) {
+		return [
+			v0[0] + (v1[0] - v0[0])*a,
+			v0[1] + (v1[1] - v0[1])*a,
+			v0[2] + (v1[2] - v0[2])*a
+		]
 	}
 
 }
