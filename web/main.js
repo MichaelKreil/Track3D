@@ -159,7 +159,12 @@ function init() {
 
 		ctx.beginPath();
 		ctx.fillStyle = 'rgb(255,255,255)';
-		ctx.arc(activePoint.vector[0], activePoint.vector[1], 10, 0, Math.PI*2, false);
+		var x = activePoint.vector[0];
+		var y = activePoint.vector[1];
+		ctx.moveTo(x  , y   );
+		ctx.lineTo(x+8, y-30);
+		ctx.lineTo(x-8, y-30);
+		ctx.lineTo(x  , y   );
 		ctx.fill();
 
 		return;
