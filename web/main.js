@@ -13,6 +13,7 @@ function init() {
 
 	var pressed = false;
 	var changed = true;
+	var drawList = false;
 	var lastX, lastY;
 	canvas.addEventListener('mousedown', function (e) { pd(e); mouseDown(e.screenX, e.screenY) });
 	canvas.addEventListener('mousemove', function (e) { pd(e); mouseMove(e.screenX, e.screenY) });
@@ -66,75 +67,85 @@ function init() {
 		
 		ctx.clearRect(0,0,w,h);
 
-		var points = data.points.map(function (point) {
-			var v = [point.x, point.y, point.z];
-			vec.scaleZ(v, 2);
-			vec.rotateZ(v, angleZ);
-			vec.rotateX(v, angleX-Math.PI/2);
-			vec.project(v, 3000);
-			vec.scale(v, zoom);
-			return [
-				xc + v[0],
-				yc - v[1],
-				point.s,
-				v[2]
-			];
-		});
-
-		var objects = [];
-		for (var i = 0; i < points.length-1; i++) {
-			var z = (points[i][3] + points[i+1][3])/2;
-
-			var v = (points[i][2] + points[i+1][2])/2;
-			v *= 0.8;
-			var r = Math.round(255/(Math.exp(0.1/v)-1));
-			var g = Math.round(255/(Math.exp(1/v)-1));
-			var b = Math.round(255/(Math.exp(2/v)-1));
-
-			objects.push([z, r+','+g+','+b, 1, 1, points[i][0], points[i][1], points[i+1][0], points[i+1][1]]);
+		if (!drawList) {
+			drawList = [];
+			for (var i = 0; i < data.points.length-1; i++) {
+				var v = (data.points[i].s + data.points[i+1].s)/2;
+				v *= 0.8;
+				var r = Math.round(255/(Math.exp(0.1/v)-1));
+				var g = Math.round(255/(Math.exp(1/v)-1));
+				var b = Math.round(255/(Math.exp(2/v)-1));
+				drawList.push({
+					type:'path',
+					z:0,
+					r:1,
+					alpha:1,
+					point0:data.points[i  ],
+					point1:data.points[i+1],
+					color:r+','+g+','+b
+				})
+			}
+			data.grid.forEach(function (point) {
+				drawList.push({
+					type:'grid',
+					z:0,
+					r:1,
+					alpha:1,
+					point:point,
+					color: (point.z <= 0) ? '0,0,255' : '0,255,0'
+				})
+			})
 		}
 
-
-
-		data.grid.forEach(function (point) {
-			var v = [point.x, point.y, point.z];
-			var color = (point.z <= 0) ? '0,0,255' : /*Math.round(point.z*3)+*/'0,255,0';
-
+		function project(v) {
 			vec.scaleZ(v, 2);
 			vec.rotateZ(v, angleZ);
 			vec.rotateX(v, angleX-Math.PI/2);
 			vec.project(v, 3000);
 			vec.scale(v, zoom);
-			objects.push([v[2], color, 0.5, 1, xc + v[0], yc - v[1]]);
+			vec.translate2D(v, xc, yc)
+			return v;
+		}
+
+		data.points.forEach(function (point) { point.vector = project([point.x, point.y, point.z]) });
+		data.grid.forEach(  function (point) { point.vector = project([point.x, point.y, point.z]) });
+
+
+		drawList.forEach(function (obj) {
+			if (obj.point) {
+				obj.z = obj.point.vector[2];
+			} else {
+				obj.z = (obj.point0.vector[2] + obj.point1.vector[2])/2;
+			}
 		})
 
-		objects.sort(function (a,b) {
-			return a[0]-b[0];
+		drawList.sort(function (a,b) {
+			return a.z - b.z;
 		})
 		
 		ctx.lineCap = 'round';
 
-		objects.forEach(function (obj) {
-			var rad = Math.abs(obj[0])*0.03;
+		drawList.forEach(function (obj) {
+			var blur = Math.abs(obj.z)*0.03;
 			
-			var alpha = 2/Math.pow(rad+1,1.8);
+			var alpha = obj.alpha*2/Math.pow(blur+1,1.8);
 			if (alpha > 1) alpha = 1;
 
 			rad *= zoom*3;
 
-			switch (obj.length) {
-				case 6:
+			switch (obj.type) {
+				case 'grid':
 					ctx.beginPath();
-					ctx.fillStyle = 'rgba('+obj[1]+','+obj[2]*alpha+')';
-					ctx.arc(obj[4],obj[5],obj[3]+rad,0,Math.PI*2,false);
+					ctx.fillStyle = 'rgba('+obj.color+','+alpha+')';
+					ctx.arc(obj.point.vector[0], obj.point.vector[1], (blur + obj.r)/2, 0, Math.PI*2, false);
 					ctx.fill();
 				break;
-				case 8:
+				case 'path':
 					ctx.beginPath();
-					ctx.strokeStyle = 'rgba('+obj[1]+','+obj[2]*alpha+')';
-					ctx.moveTo(obj[4], obj[5]);
-					ctx.lineTo(obj[6], obj[7]);
-					ctx.lineWidth = obj[3]+rad;
+					ctx.strokeStyle = 'rgba('+obj.color+','+alpha+')';
+					ctx.moveTo(obj.point0.vector[0], obj.point0.vector[1]);
+					ctx.lineTo(obj.point1.vector[0], obj.point1.vector[1]);
+					ctx.lineWidth = blur + obj.r;
 					ctx.stroke();
 				break;
 			}
@@ -195,5 +206,10 @@ var vec = {
 	},
 	scaleZ: function (v, s) {
 		v[2] *= s;
+	},
+	translate2D: function (v, x, y) {
+		v[0] += x;
+		v[1] = y - v[1];
 	}
+
 }
