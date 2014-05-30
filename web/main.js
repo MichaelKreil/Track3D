@@ -54,7 +54,7 @@ function init() {
 	setInterval(frame, 40);
 
 	function frame() {
-		time += 1;
+		time += 30;
 		if (!changed) return;
 		//changed = false;
 
